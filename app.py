@@ -34,8 +34,13 @@ df_conc = pd.DataFrame(concorrencia)
 # ------------------------
 melhor_canal = df.groupby("canal")["conversao"].mean().idxmax()
 pior_canal = df.groupby("canal")["conversao"].mean().idxmin()
-melhor_regiao = df.groupby("regiao")["leads"].sum().idxmax()
-pior_regiao = df.groupby("regiao")["conversao"].mean().idxmin()
+
+regiao_leads = df.groupby("regiao")["leads"].sum()
+regiao_conversao = df.groupby("regiao")["conversao"].mean()
+
+melhor_regiao = regiao_leads.idxmax()
+pior_regiao = regiao_conversao.idxmin()
+
 melhor_segmento = df.groupby("segmento")["conversao"].mean().idxmax()
 
 # ------------------------
@@ -63,12 +68,12 @@ pergunta = st.text_input("Digite sua pergunta:")
 if pergunta:
     pergunta = pergunta.lower()
 
-    # 🔴 PROBLEMAS (ANTES DE TUDO)
+    # 🔴 PROBLEMAS
     if "pior canal" in pergunta:
-        st.warning(f"⚠️ O canal com pior performance é {pior_canal}")
+        st.warning(f"⚠️ O canal com pior performance (menor conversão) é {pior_canal}")
 
     elif "pior regiao" in pergunta or "pior região" in pergunta:
-        st.warning(f"⚠️ A região com pior conversão é {pior_regiao}")
+        st.warning(f"⚠️ A região com pior taxa de conversão é {pior_regiao}")
 
     elif "perdendo" in pergunta:
         st.warning(f"⚠️ Estamos perdendo performance no canal {pior_canal} e na região {pior_regiao}")
@@ -81,9 +86,19 @@ if pergunta:
     elif "melhor canal" in pergunta:
         st.success(f"📊 O canal com melhor conversão é {melhor_canal}")
 
-    # 🟢 REGIÃO
+    # 🟢 CRESCIMENTO (IMPORTANTE 🔥)
+    elif "cresce" in pergunta or "crescimento" in pergunta:
+        st.success(
+            f"📈 A região com mais leads (crescimento) é {melhor_regiao}, "
+            f"porém a conversão mais baixa está em {pior_regiao}"
+        )
+
+    # 🟢 REGIÃO (RESPOSTA INTELIGENTE)
     elif "regiao" in pergunta or "região" in pergunta:
-        st.success(f"📍 A região com maior crescimento é {melhor_regiao}")
+        st.success(
+            f"📊 A região com mais leads é {melhor_regiao}, "
+            f"mas a pior taxa de conversão está em {pior_regiao}"
+        )
 
     # 🟢 SEGMENTO
     elif "segmento" in pergunta:
@@ -94,7 +109,7 @@ if pergunta:
         melhor_concorrente = df_conc.loc[df_conc["conversao_media"].idxmax()]
         st.success(
             f"📊 O concorrente com melhor performance é {melhor_concorrente['empresa']}, "
-            f"com canal principal {melhor_concorrente['canal_top']}"
+            f"com foco no canal {melhor_concorrente['canal_top']}"
         )
 
     elif "comparar" in pergunta:
