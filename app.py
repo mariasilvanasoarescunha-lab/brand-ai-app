@@ -18,7 +18,7 @@ dados = {
 df = pd.DataFrame(dados)
 
 # ------------------------
-# BASE DE CONCORRÊNCIA (SIMULADA)
+# BASE DE CONCORRÊNCIA
 # ------------------------
 concorrencia = {
     "empresa": ["Concorrente A", "Concorrente B"],
@@ -63,29 +63,33 @@ pergunta = st.text_input("Digite sua pergunta:")
 if pergunta:
     pergunta = pergunta.lower()
 
-    # INVESTIMENTO
-    if "investir" in pergunta:
-        st.success(f"➡️ Recomendamos investir mais no canal {melhor_canal} e expandir na região {melhor_regiao}")
-
-    # CANAIS
-    elif "melhor canal" in pergunta or "canal" in pergunta:
-        st.success(f"📊 O canal com melhor conversão é {melhor_canal}")
-
-    elif "pior canal" in pergunta:
+    # 🔴 PROBLEMAS (ANTES DE TUDO)
+    if "pior canal" in pergunta:
         st.warning(f"⚠️ O canal com pior performance é {pior_canal}")
 
-    # REGIÃO
+    elif "pior regiao" in pergunta or "pior região" in pergunta:
+        st.warning(f"⚠️ A região com pior conversão é {pior_regiao}")
+
+    elif "perdendo" in pergunta:
+        st.warning(f"⚠️ Estamos perdendo performance no canal {pior_canal} e na região {pior_regiao}")
+
+    # 🟢 INVESTIMENTO
+    elif "investir" in pergunta:
+        st.success(f"➡️ Recomendamos investir mais no canal {melhor_canal} e expandir na região {melhor_regiao}")
+
+    # 🟢 MELHOR CANAL
+    elif "melhor canal" in pergunta:
+        st.success(f"📊 O canal com melhor conversão é {melhor_canal}")
+
+    # 🟢 REGIÃO
     elif "regiao" in pergunta or "região" in pergunta:
         st.success(f"📍 A região com maior crescimento é {melhor_regiao}")
 
-    elif "pior regiao" in pergunta:
-        st.warning(f"⚠️ A região com pior conversão é {pior_regiao}")
-
-    # SEGMENTO
+    # 🟢 SEGMENTO
     elif "segmento" in pergunta:
         st.success(f"🏆 O segmento com melhor conversão é {melhor_segmento}")
 
-    # CONCORRÊNCIA (DIFERENCIAL 🔥)
+    # 🔵 CONCORRÊNCIA
     elif "concorrente" in pergunta or "concorrencia" in pergunta:
         melhor_concorrente = df_conc.loc[df_conc["conversao_media"].idxmax()]
         st.success(
@@ -98,7 +102,7 @@ if pergunta:
             f"➡️ Nosso melhor canal é {melhor_canal}, enquanto concorrentes focam em {df_conc['canal_top'].values[0]}"
         )
 
-    # FALLBACK
+    # ⚪ FALLBACK
     else:
         st.info("Ainda estou aprendendo essa pergunta 😊")
 
