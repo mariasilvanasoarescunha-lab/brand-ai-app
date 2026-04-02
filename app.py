@@ -23,22 +23,28 @@ st.write("Pergunte sobre campanhas, regiões ou performance")
 # Campo de pergunta
 pergunta = st.text_input("Digite sua pergunta:")
 
+
 if pergunta:
+    pergunta = pergunta.lower()
 
-    if "canal" in pergunta.lower():
-        melhor = df.groupby("canal")["conversao"].mean().idxmax()
-        st.success(f"📊 Melhor canal: {melhor}")
+    if "melhor canal" in pergunta or "canal" in pergunta:
+        st.success(f"O melhor canal é {melhor_canal}")
 
-    elif "regiao" in pergunta.lower():
-        regiao = df.groupby("regiao")["leads"].sum().idxmax()
-        st.success(f"🌎 Região com maior volume: {regiao}")
+    elif "regiao" in pergunta or "região" in pergunta:
+        st.success(f"A região com maior crescimento é {melhor_regiao}")
 
-    elif "segmento" in pergunta.lower():
-        segmento = df.groupby("segmento")["conversao"].mean().idxmax()
-        st.success(f"🎯 Segmento com melhor conversão: {segmento}")
+    elif "segmento" in pergunta:
+        st.success(f"O melhor segmento é {melhor_segmento}")
+
+    elif "investir" in pergunta:
+        st.success(f"Recomendamos investir mais no canal {melhor_canal} e focar na região {melhor_regiao}")
+
+    elif "pior" in pergunta:
+        pior_canal = df.groupby("canal")["conversao"].mean().idxmin()
+        st.warning(f"O canal com pior performance é {pior_canal}")
 
     else:
-        st.warning("Ainda estou aprendendo essa pergunta 😉")
+        st.info("Ainda estou aprendendo essa pergunta 😊")
 
 # Gráfico
 st.subheader("Leads por canal")
