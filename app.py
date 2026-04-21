@@ -88,7 +88,7 @@ def agente_contabilizei(pergunta, df, df_sat, df_conc):
         return f"➡️ Recomenda-se investir em {melhor_canal} e expandir na região {melhor_regiao}"
 
     # 🟢 MELHOR CANAL
-    eelif ("melhor canal" in pergunta) or ("canal" in pergunta and "convers" in pergunta):
+    elif ("melhor canal" in pergunta) or ("canal" in pergunta and "convers" in pergunta):
         return f"📊 O melhor canal é {melhor_canal}"
 
     # 🟢 REGIÃO
