@@ -1,5 +1,15 @@
 import streamlit as st
 import pandas as pd
+import unicodedata
+
+# ------------------------
+# FUNÇÃO PARA REMOVER ACENTO (🔥 MELHORIA)
+# ------------------------
+def normalizar_texto(texto):
+    return ''.join(
+        c for c in unicodedata.normalize('NFD', texto)
+        if unicodedata.category(c) != 'Mn'
+    ).lower()
 
 # ------------------------
 # BASE DE DADOS
@@ -47,20 +57,20 @@ df_conc = pd.DataFrame(concorrencia)
 # AI AGENT (INTELIGENTE)
 # ------------------------
 def agente_contabilizei(pergunta, df, df_sat, df_conc):
-    pergunta = pergunta.lower()
+    pergunta = normalizar_texto(pergunta)
 
     # Palavras-chave
-    palavras_melhor = ["melhor", "top", "mais eficiente", "performance"]
-    palavras_pior = ["pior", "ruim", "baixo"]
+    palavras_melhor = ["melhor", "top", "performance"]
+    palavras_pior = ["pior", "ruim"]
     palavras_canal = ["canal", "marketing"]
-    palavras_regiao = ["regiao", "região", "local"]
+    palavras_regiao = ["regiao", "local"]
     palavras_segmento = ["segmento", "setor"]
-    palavras_conversao = ["conversao", "conversão"]
+    palavras_conversao = ["conversao"]
     palavras_churn = ["churn", "cancelamento"]
     palavras_crescimento = ["crescimento", "cresce"]
     palavras_investimento = ["investir", "investimento"]
-    palavras_satisfacao = ["satisfacao", "insatisfacao", "reclamacao", "problema"]
-    palavras_concorrencia = ["concorrente", "concorrencia"]
+    palavras_satisfacao = ["satisfacao", "insatisfacao", "problema"]
+    palavras_concorrencia = ["concorrente"]
 
     def tem(lista):
         return any(p in pergunta for p in lista)
@@ -75,39 +85,48 @@ def agente_contabilizei(pergunta, df, df_sat, df_conc):
     melhor_segmento = df.groupby("segmento")["conversao"].mean().idxmax()
     churn_rate = df["churn"].mean()
 
-    # Regras inteligentes
+    # 🔴 PROBLEMAS
     if tem(palavras_pior) and tem(palavras_canal):
         return f"⚠️ O canal com pior performance é {pior_canal}. Recomendo revisar campanhas."
 
     if "perdendo" in pergunta:
         return f"⚠️ Estamos perdendo performance no canal {pior_canal} e na região {pior_regiao}."
 
+    # 💰 CLIENTES
     if "maiores clientes" in pergunta:
         top = df.sort_values(by="receita", ascending=False).head(3)
         return f"💰 Os maiores clientes estão nos segmentos: {', '.join(top['segmento'])}"
 
+    # 📉 CHURN
     if tem(palavras_churn):
         return f"📉 A taxa de churn é {churn_rate:.2%}"
 
+    # 📈 CRESCIMENTO
     if tem(palavras_crescimento):
         return f"📈 A região com maior crescimento é {melhor_regiao}, porém com baixa conversão em {pior_regiao}"
 
-    if tem(palavras_satisfacao):
+    # 😡 SATISFAÇÃO (🔥 CORRIGIDO)
+    if tem(palavras_satisfacao) or "reclam" in pergunta:
         problema = df_sat.sort_values(by="quantidade", ascending=False).iloc[0]
-        return f"😡 Principal problema relatado: {problema['problema']}"
+        return f"😡 A maior reclamação dos clientes é '{problema['problema']}', com {problema['quantidade']} ocorrências."
 
+    # 🟢 INVESTIMENTO
     if tem(palavras_investimento):
         return f"➡️ Recomendo investir em {melhor_canal} e expandir na região {melhor_regiao}"
 
+    # 🟢 MELHOR CANAL
     if tem(palavras_canal) and (tem(palavras_melhor) or tem(palavras_conversao)):
         return f"📊 O canal com melhor performance é {melhor_canal}"
 
+    # 🟢 REGIÃO
     if tem(palavras_regiao):
         return f"📊 A região com mais leads é {melhor_regiao}, mas a pior conversão ocorre em {pior_regiao}"
 
+    # 🟢 SEGMENTO
     if tem(palavras_segmento):
         return f"🏆 O segmento com melhor performance é {melhor_segmento}"
 
+    # 🔵 CONCORRÊNCIA
     if tem(palavras_concorrencia):
         melhor_concorrente = df_conc.loc[df_conc["conversao_media"].idxmax()]
         return f"📊 Melhor concorrente: {melhor_concorrente['empresa']} (canal: {melhor_concorrente['canal_top']})"
@@ -123,6 +142,7 @@ Tente:
 • Onde investir?
 • Qual região cresce mais?
 • Qual o churn?
+• Qual a maior reclamação?
 """
 
 # ------------------------
