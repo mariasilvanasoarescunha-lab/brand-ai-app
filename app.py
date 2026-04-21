@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # ------------------------
-# BASE DE DADOS INTERNA
+# BASE DE DADOS
 # ------------------------
 dados = {
     "cnpj": ["001", "002", "003", "004", "005"],
@@ -18,7 +18,7 @@ dados = {
 df = pd.DataFrame(dados)
 
 # ------------------------
-# DADOS AVANÇADOS (NOVO 🔥)
+# DADOS AVANÇADOS
 # ------------------------
 df["receita"] = [1000, 2000, 1500, 3000, 1200]
 df["tempo_ativo"] = [12, 6, 10, 3, 8]
@@ -44,24 +44,79 @@ concorrencia = {
 df_conc = pd.DataFrame(concorrencia)
 
 # ------------------------
-# INSIGHTS
+# AI AGENT (CÉREBRO)
 # ------------------------
-melhor_canal = df.groupby("canal")["conversao"].mean().idxmax()
-pior_canal = df.groupby("canal")["conversao"].mean().idxmin()
+def agente_contabilizei(pergunta, df, df_sat, df_conc):
+    pergunta = pergunta.lower()
 
-regiao_leads = df.groupby("regiao")["leads"].sum()
-regiao_conversao = df.groupby("regiao")["conversao"].mean()
+    melhor_canal = df.groupby("canal")["conversao"].mean().idxmax()
+    pior_canal = df.groupby("canal")["conversao"].mean().idxmin()
 
-melhor_regiao = regiao_leads.idxmax()
-pior_regiao = regiao_conversao.idxmin()
+    melhor_regiao = df.groupby("regiao")["leads"].sum().idxmax()
+    pior_regiao = df.groupby("regiao")["conversao"].mean().idxmin()
 
-melhor_segmento = df.groupby("segmento")["conversao"].mean().idxmax()
+    melhor_segmento = df.groupby("segmento")["conversao"].mean().idxmax()
+
+    # 🔴 PROBLEMAS
+    if "pior canal" in pergunta:
+        return f"⚠️ O canal com pior performance é {pior_canal}. Recomenda-se revisar campanhas."
+
+    elif "perdendo" in pergunta or "perdas" in pergunta:
+        return f"⚠️ Estamos perdendo performance no canal {pior_canal} e na região {pior_regiao}."
+
+    # 💰 CLIENTES
+    elif "maiores clientes" in pergunta:
+        top = df.sort_values(by="receita", ascending=False).head(3)
+        return f"💰 Os maiores clientes estão nos segmentos: {', '.join(top['segmento'])}"
+
+    # 📉 CHURN
+    elif "churn" in pergunta or "cancelamento" in pergunta:
+        churn_rate = df["churn"].mean()
+        return f"📉 A taxa de churn é {churn_rate:.2%}"
+
+    # 📈 CRESCIMENTO
+    elif "crescimento" in pergunta or "cresce" in pergunta:
+        return f"📈 A região com mais crescimento é {melhor_regiao}, porém com baixa conversão em {pior_regiao}"
+
+    # 😡 SATISFAÇÃO
+    elif "satisfacao" in pergunta or "insatisfacao" in pergunta or "reclamacao" in pergunta:
+        problema = df_sat.sort_values(by="quantidade", ascending=False).iloc[0]
+        return f"😡 Principal problema relatado: {problema['problema']}"
+
+    # 🟢 INVESTIMENTO
+    elif "investir" in pergunta:
+        return f"➡️ Recomenda-se investir em {melhor_canal} e expandir na região {melhor_regiao}"
+
+    # 🟢 MELHOR CANAL
+    elif "melhor canal" in pergunta:
+        return f"📊 O melhor canal é {melhor_canal}"
+
+    # 🟢 REGIÃO
+    elif "regiao" in pergunta or "região" in pergunta:
+        return f"📊 Mais leads em {melhor_regiao}, mas pior conversão em {pior_regiao}"
+
+    # 🟢 SEGMENTO
+    elif "segmento" in pergunta:
+        return f"🏆 O segmento com melhor performance é {melhor_segmento}"
+
+    # 🔵 CONCORRÊNCIA
+    elif "concorrente" in pergunta:
+        melhor_concorrente = df_conc.loc[df_conc["conversao_media"].idxmax()]
+        return f"📊 Melhor concorrente: {melhor_concorrente['empresa']} (canal: {melhor_concorrente['canal_top']})"
+
+    elif "comparar" in pergunta:
+        melhor_concorrente = df_conc.loc[df_conc["conversao_media"].idxmax()]
+        return f"➡️ Nosso melhor canal: {melhor_canal} vs concorrência: {melhor_concorrente['canal_top']}"
+
+    # ⚪ FALLBACK
+    else:
+        return "Ainda estou aprendendo essa pergunta 😊"
 
 # ------------------------
 # UI
 # ------------------------
 st.title("📊 CONTABILIZEI Brand AI")
-st.write("Insights de marketing, clientes e concorrência em linguagem simples")
+st.write("🤖 Você está conversando com um AI Agent especialista em dados de marketing.")
 
 # KPIs
 col1, col2, col3 = st.columns(3)
@@ -80,87 +135,17 @@ st.subheader("🤖 Pergunte aos dados")
 pergunta = st.text_input("Digite sua pergunta:")
 
 if pergunta:
-    pergunta = pergunta.lower()
-
-    # 🔴 PROBLEMAS
-    if "pior canal" in pergunta:
-        st.warning(f"⚠️ O canal com pior performance é {pior_canal}")
-
-    elif "pior regiao" in pergunta or "pior região" in pergunta:
-        st.warning(f"⚠️ A região com pior conversão é {pior_regiao}")
-
-    elif "perdendo" in pergunta or "perdas" in pergunta:
-        st.warning(f"⚠️ Estamos perdendo performance no canal {pior_canal} e na região {pior_regiao}")
-
-    # 💰 MAIORES CLIENTES
-    elif "maiores clientes" in pergunta or "maior cliente" in pergunta:
-        top = df.sort_values(by="receita", ascending=False).head(3)
-        st.success(f"💰 Maiores clientes estão nos segmentos: {', '.join(top['segmento'])}")
-
-    # 📉 CHURN
-    elif "churn" in pergunta or "cancelamento" in pergunta:
-        churn_rate = df["churn"].mean()
-        st.warning(f"📉 Taxa de churn estimada: {churn_rate:.2%}")
-
-    # 📈 CRESCIMENTO
-    elif "cresce" in pergunta or "crescimento" in pergunta:
-        st.success(
-            f"📈 A região com mais leads é {melhor_regiao}, "
-            f"porém apresenta baixa conversão em {pior_regiao}"
-        )
-
-    elif "onde crescemos" in pergunta:
-        st.success(f"📈 Crescimento concentrado na região {melhor_regiao}")
-
-    # 😡 SATISFAÇÃO
-    elif "satisfacao" in pergunta or "insatisfeito" in pergunta:
-        problema = df_sat.sort_values(by="quantidade", ascending=False).iloc[0]
-        st.warning(f"😡 Principal insatisfação: {problema['problema']}")
-
-    elif "queixa" in pergunta or "reclamacao" in pergunta:
-        problema = df_sat.sort_values(by="quantidade", ascending=False).iloc[0]
-        st.warning(f"📢 Maior queixa dos clientes: {problema['problema']}")
-
-    # 🟢 INVESTIMENTO
-    elif "investir" in pergunta:
-        st.success(f"➡️ Investir mais em {melhor_canal} e expandir em {melhor_regiao}")
-
-    # 🟢 MELHOR CANAL
-    elif "melhor canal" in pergunta:
-        st.success(f"📊 Melhor canal: {melhor_canal}")
-
-    # 🟢 REGIÃO
-    elif "regiao" in pergunta or "região" in pergunta:
-        st.success(
-            f"📊 Mais leads em {melhor_regiao}, "
-            f"mas pior conversão em {pior_regiao}"
-        )
-
-    # 🟢 SEGMENTO
-    elif "segmento" in pergunta:
-        st.success(f"🏆 Melhor segmento: {melhor_segmento}")
-
-    # 🔵 CONCORRÊNCIA
-    elif "concorrente" in pergunta or "concorrencia" in pergunta:
-        melhor_concorrente = df_conc.loc[df_conc["conversao_media"].idxmax()]
-        st.success(
-            f"📊 Melhor concorrente: {melhor_concorrente['empresa']} "
-            f"(canal: {melhor_concorrente['canal_top']})"
-        )
-
-    elif "comparar" in pergunta:
-        st.success(
-            f"➡️ Nosso canal: {melhor_canal} vs concorrência: {df_conc['canal_top'].values[0]}"
-        )
-
-    # ⚪ FALLBACK
-    else:
-        st.info("Ainda estou aprendendo essa pergunta 😊")
+    resposta = agente_contabilizei(pergunta, df, df_sat, df_conc)
+    st.write(resposta)
 
 # ------------------------
 # RECOMENDAÇÕES
 # ------------------------
 st.subheader("💡 Recomendações estratégicas")
+
+melhor_canal = df.groupby("canal")["conversao"].mean().idxmax()
+pior_canal = df.groupby("canal")["conversao"].mean().idxmin()
+melhor_regiao = df.groupby("regiao")["leads"].sum().idxmax()
 
 st.write(f"➡️ Investir em {melhor_canal}")
 st.write(f"➡️ Melhorar {pior_canal}")
